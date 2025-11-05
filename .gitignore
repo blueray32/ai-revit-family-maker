@@ -1,0 +1,73 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+venv/
+env/
+ENV/
+
+# Environment variables
+.env
+.env.local
+.env.backup
+*.key
+*.pem
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Revit AppBundle build outputs
+RevitAppBundle/bin/
+RevitAppBundle/obj/
+*.dll
+*.pdb
+*.cache
+*.user
+*.suo
+
+# Output files
+output/
+*.rfa
+*.rvt
+*.rte
+
+# Logs
+*.log
+logs/
+
+# Package files
+*.zip
+*.7z
+*.tar.gz
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Temporary files
+tmp/
+temp/
+*.tmp

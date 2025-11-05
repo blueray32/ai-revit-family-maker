@@ -1,0 +1,66 @@
+{
+  "id": "RevitFamilyMakerActivity",
+  "commandLine": [
+    "$(engine.path)\\\\revitcoreconsole.exe /i \"$(args[templateFile].path)\" /al \"$(appbundles[RevitFamilyMaker].path)\""
+  ],
+  "parameters": {
+    "templateFile": {
+      "verb": "get",
+      "description": "Input Revit family template (.rft)",
+      "required": true,
+      "localName": "template.rft"
+    },
+    "parametersFile": {
+      "verb": "get",
+      "description": "Input parameters JSON",
+      "required": true,
+      "localName": "parameters.json"
+    },
+    "outputFamily": {
+      "verb": "put",
+      "description": "Output Revit family (.rfa)",
+      "required": true,
+      "localName": "output.rfa",
+      "ondemand": false
+    },
+    "outputManifest": {
+      "verb": "put",
+      "description": "Output manifest JSON",
+      "required": true,
+      "localName": "manifest.json",
+      "ondemand": false
+    }
+  },
+  "engine": "Autodesk.Revit+2024",
+  "appbundles": [
+    "{{NICKNAME}}.RevitFamilyMaker2024+production"
+  ],
+  "description": "Creates parametric Revit families from JSON parameters using AI-driven workflows",
+  "version": 1,
+  "settings": {
+    "activityId": {
+      "type": "string",
+      "description": "Activity ID format: {{NICKNAME}}.RevitFamilyMakerActivity+{{ALIAS}}"
+    },
+    "aliases": {
+      "production": "Stable production version",
+      "dev": "Development version for testing",
+      "staging": "Staging version for validation"
+    }
+  },
+  "notes": [
+    "This activity expects the following files in the working directory:",
+    "  - template.rft: Revit family template",
+    "  - parameters.json: FamilyCreationParams JSON",
+    "",
+    "The activity produces:",
+    "  - output.rfa: Generated Revit family",
+    "  - manifest.json: FamilyManifest with metadata and parameters",
+    "",
+    "Replace {{NICKNAME}} with your APS nickname before creating the activity",
+    "",
+    "For Revit 2025, change:",
+    "  - engine: Autodesk.Revit+2025",
+    "  - appbundles: {{NICKNAME}}.RevitFamilyMaker2025+production"
+  ]
+}

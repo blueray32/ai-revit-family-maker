@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ApplicationPackage
+  SchemaVersion="1.0"
+  AutodeskProduct="Revit"
+  ProductType="Application"
+  Name="RevitFamilyMaker"
+  AppVersion="1.0.0"
+  Description="AI-powered Revit family generator"
+  Author="YourCompany">
+
+  <CompanyDetails
+    Name="YourCompany"
+    Url="https://yourcompany.com"
+    Email="support@yourcompany.com" />
+
+  <Components>
+    <RuntimeRequirements
+      OS="Win64"
+      Platform="Revit"
+      SeriesMin="R2024"
+      SeriesMax="R2025" />
+
+    <ComponentEntry
+      AppName="RevitFamilyMaker"
+      ModuleName="./RevitFamilyMaker.dll"
+      AppDescription="AI Family Generator"
+      LoadOnRevitStartup="false">
+
+      <Commands>
+        <Command>
+          <Name>FamilyMakerCommand</Name>
+          <Assembly>RevitFamilyMaker.dll</Assembly>
+          <FullClassName>RevitFamilyMaker.FamilyMakerCommand</FullClassName>
+          <Text>Generate Family</Text>
+          <Description>Generate Revit family from parameters</Description>
+          <VisibilityMode>AlwaysVisible</VisibilityMode>
+        </Command>
+      </Commands>
+    </ComponentEntry>
+  </Components>
+</ApplicationPackage>
