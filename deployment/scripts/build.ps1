@@ -18,23 +18,41 @@ Write-Host "RevitFamilyMaker AppBundle Build Script" -ForegroundColor Cyan
 Write-Host "================================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Check for MSBuild
-$msbuild = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" `
-    -latest -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe `
-    -prerelease | Select-Object -First 1
-
-if (-not $msbuild) {
-    Write-Error "MSBuild not found. Please install Visual Studio 2019 or later."
+# Resolve dotnet CLI (covers both .NET Framework and .NET 8 targets)
+try {
+    $dotnet = Get-Command dotnet -ErrorAction Stop | Select-Object -First 1
+} catch {
+    Write-Error "dotnet CLI not found. Please install .NET SDK 8.0 or later."
     exit 1
 }
+$dotnetPath = $dotnet.Source
 
-Write-Host "Using MSBuild: $msbuild" -ForegroundColor Green
+Write-Host "Using dotnet CLI: $dotnetPath" -ForegroundColor Green
 Write-Host ""
+
+Write-Host "Restoring NuGet packages..." -ForegroundColor Yellow
+& $dotnetPath restore $ProjectFile
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "dotnet restore failed."
+    exit 1
+}
+Write-Host "Restore complete." -ForegroundColor Green
+Write-Host ""
+
+$configuration2024 = if ($Configuration -ieq "Debug") { "Debug" } else { "Release2024" }
+$configuration2025 = if ($Configuration -ieq "Debug") { "Debug" } else { "Release2025" }
+$configsToClean = @($configuration2024, $configuration2025) | Sort-Object -Unique
 
 # Clean if requested
 if ($Clean) {
     Write-Host "Cleaning previous builds..." -ForegroundColor Yellow
-    & $msbuild $ProjectFile /t:Clean /p:Configuration=$Configuration
+    foreach ($config in $configsToClean) {
+        & $dotnetPath clean $ProjectFile -c $config
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "dotnet clean failed for configuration '$config'."
+            exit 1
+        }
+    }
     if (Test-Path $OutputDir) {
         Remove-Item -Recurse -Force $OutputDir
     }
@@ -50,13 +68,11 @@ Write-Host "Building for Revit 2024..." -ForegroundColor Yellow
 $Output2024 = Join-Path $OutputDir "Revit2024"
 New-Item -ItemType Directory -Force -Path $Output2024 | Out-Null
 
-& $msbuild $ProjectFile `
-    /t:Build `
-    /p:Configuration=$Configuration `
-    /p:TargetFrameworkVersion=v4.8 `
-    /p:OutputPath="$Output2024" `
-    /p:DefineConstants="REVIT2024" `
-    /verbosity:minimal
+& $dotnetPath build $ProjectFile `
+    -c $configuration2024 `
+    "-p:OutputPath=$Output2024" `
+    --no-restore `
+    -v minimal
 
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Build failed for Revit 2024"
@@ -70,13 +86,13 @@ Write-Host "Building for Revit 2025..." -ForegroundColor Yellow
 $Output2025 = Join-Path $OutputDir "Revit2025"
 New-Item -ItemType Directory -Force -Path $Output2025 | Out-Null
 
-& $msbuild $ProjectFile `
-    /t:Build `
-    /p:Configuration=$Configuration `
-    /p:TargetFrameworkVersion=v4.8 `
-    /p:OutputPath="$Output2025" `
-    /p:DefineConstants="REVIT2025" `
-    /verbosity:minimal
+& $dotnetPath publish $ProjectFile `
+    -c $configuration2025 `
+    -r win-x64 `
+    --no-restore `
+    --no-self-contained `
+    "-o" $Output2025 `
+    -v minimal
 
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Build failed for Revit 2025"

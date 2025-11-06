@@ -19,7 +19,7 @@ class TemplateMetadata:
     url: str = ""
     local_path: Optional[str] = None
     hash: str = ""
-    revit_version: str = "2024"
+    revit_version: str = "2025"
     description: str = ""
     default_width: float = 1000.0  # mm
     default_depth: float = 1000.0  # mm
@@ -41,163 +41,106 @@ class TemplateCatalog:
         self._initialize_default_catalog()
 
     def _initialize_default_catalog(self):
-        """Initialize with default template mappings"""
+        """Initialize with default template mappings."""
 
-        # Generic Model - fallback for unknown categories
-        self.add_template(
+        version_path = "2025"
+
+        def template_url(file_name: str) -> str:
+            return f"{self.base_url}/{version_path}/{file_name}"
+
+        default_templates = [
+            # Generic Model - fallback for unknown categories
             TemplateMetadata(
                 id="generic_model_v1",
                 category="Generic Models",
-                url=f"{self.base_url}/2024/Generic_Model.rft",
-                revit_version="2024",
+                url=template_url("Generic_Model.rft"),
                 description="Generic parametric model template",
                 default_width=1000.0,
                 default_depth=1000.0,
                 default_height=1000.0,
-            )
-        )
-
-        # Furniture templates
-        self.add_template(
+            ),
+            # Furniture templates
             TemplateMetadata(
                 id="furniture_v1",
                 category="Furniture",
-                url=f"{self.base_url}/2024/Furniture.rft",
-                revit_version="2024",
+                url=template_url("Furniture.rft"),
                 description="Furniture family template with standard dimensions",
                 default_width=800.0,
                 default_depth=800.0,
                 default_height=900.0,
                 min_width=300.0,
                 max_width=3000.0,
-            )
-        )
-
-        self.add_template(
-            TemplateMetadata(
-                id="furniture_chair_v1",
-                category="Furniture",
-                subcategory="Seating",
-                url=f"{self.base_url}/2024/Furniture.rft",
-                revit_version="2024",
-                description="Chair template with ergonomic dimensions",
-                default_width=600.0,
-                default_depth=650.0,
-                default_height=900.0,
-                min_width=400.0,
-                max_width=1200.0,
-                min_height=600.0,
-                max_height=1500.0,
-            )
-        )
-
-        self.add_template(
-            TemplateMetadata(
-                id="furniture_table_v1",
-                category="Furniture",
-                subcategory="Tables",
-                url=f"{self.base_url}/2024/Furniture.rft",
-                revit_version="2024",
-                description="Table template with variable dimensions",
-                default_width=1200.0,
-                default_depth=800.0,
-                default_height=750.0,
-                min_width=600.0,
-                max_width=4000.0,
-                min_height=600.0,
-                max_height=1100.0,
-            )
-        )
-
-        # Casework
-        self.add_template(
+            ),
+            # Casework
             TemplateMetadata(
                 id="casework_v1",
                 category="Casework",
-                url=f"{self.base_url}/2024/Casework.rft",
-                revit_version="2024",
+                url=template_url("Casework.rft"),
                 description="Cabinet and casework template",
                 default_width=900.0,
                 default_depth=600.0,
                 default_height=900.0,
                 min_width=300.0,
                 max_width=3000.0,
-            )
-        )
-
-        # Lighting Fixtures
-        self.add_template(
+            ),
+            # Lighting Fixtures
             TemplateMetadata(
                 id="lighting_v1",
                 category="Lighting Fixtures",
-                url=f"{self.base_url}/2024/Lighting_Fixture.rft",
-                revit_version="2024",
+                url=template_url("Lighting_Fixture.rft"),
                 description="Lighting fixture template",
                 default_width=300.0,
                 default_depth=300.0,
                 default_height=400.0,
                 min_width=100.0,
                 max_width=2000.0,
-            )
-        )
-
-        # Specialty Equipment
-        self.add_template(
+            ),
+            # Specialty Equipment
             TemplateMetadata(
                 id="specialty_equipment_v1",
                 category="Specialty Equipment",
-                url=f"{self.base_url}/2024/Specialty_Equipment.rft",
-                revit_version="2024",
+                url=template_url("Specialty_Equipment.rft"),
                 description="Specialty equipment template",
                 default_width=1000.0,
                 default_depth=1000.0,
                 default_height=1500.0,
-            )
-        )
-
-        # Plumbing Fixtures
-        self.add_template(
+            ),
+            # Plumbing Fixtures
             TemplateMetadata(
                 id="plumbing_v1",
                 category="Plumbing Fixtures",
-                url=f"{self.base_url}/2024/Plumbing_Fixture.rft",
-                revit_version="2024",
+                url=template_url("Plumbing_Fixture.rft"),
                 description="Plumbing fixture template",
                 default_width=600.0,
                 default_depth=600.0,
                 default_height=800.0,
                 min_width=300.0,
                 max_width=2000.0,
-            )
-        )
-
-        # Electrical Equipment
-        self.add_template(
+            ),
+            # Electrical Equipment
             TemplateMetadata(
                 id="electrical_v1",
                 category="Electrical Equipment",
-                url=f"{self.base_url}/2024/Electrical_Equipment.rft",
-                revit_version="2024",
+                url=template_url("Electrical_Equipment.rft"),
                 description="Electrical equipment template",
                 default_width=500.0,
                 default_depth=300.0,
                 default_height=600.0,
-            )
-        )
-
-        # Mechanical Equipment
-        self.add_template(
+            ),
+            # Mechanical Equipment
             TemplateMetadata(
                 id="mechanical_v1",
                 category="Mechanical Equipment",
-                url=f"{self.base_url}/2024/Mechanical_Equipment.rft",
-                revit_version="2024",
+                url=template_url("Mechanical_Equipment.rft"),
                 description="Mechanical equipment template",
                 default_width=1000.0,
                 default_depth=800.0,
                 default_height=1200.0,
-            )
-        )
+            ),
+        ]
+
+        for template in default_templates:
+            self.add_template(template)
 
     def add_template(self, template: TemplateMetadata):
         """Add a template to the catalog"""
@@ -213,7 +156,7 @@ class TemplateCatalog:
         return self.templates.get(template_id)
 
     def get_template_by_category(
-        self, category: str, revit_version: str = "2024"
+        self, category: str, revit_version: str = "2025"
     ) -> Optional[TemplateMetadata]:
         """Get template by category name"""
         category_key = f"category:{category.lower()}"

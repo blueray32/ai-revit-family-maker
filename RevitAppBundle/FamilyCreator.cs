@@ -88,7 +88,11 @@ namespace RevitFamilyMaker
                 FamilyParameter existingParam = fm.get_Parameter(name);
                 if (existingParam == null)
                 {
+#if REVIT2024 || REVIT2025
+                    existingParam = fm.AddParameter(name, GroupTypeId.IdentityData, typeId, isInstance);
+#else
                     existingParam = fm.AddParameter(name, BuiltInParameterGroup.PG_IDENTITY_DATA, typeId, isInstance);
+#endif
                 }
 
                 if (existingParam != null && value != null)
