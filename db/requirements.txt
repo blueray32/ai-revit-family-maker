@@ -1,0 +1,11 @@
+# Archon Database Migration Dependencies
+# ========================================
+
+# PostgreSQL adapter for Python
+psycopg2-binary==2.9.9
+
+# Environment variable management
+python-dotenv==1.0.0
+
+# Optional: Pretty terminal output
+rich==13.7.0

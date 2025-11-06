@@ -54,10 +54,11 @@ class APSAuthenticator:
 class AppBundleDeployer:
     """Handles AppBundle deployment to APS Design Automation"""
 
-    def __init__(self, auth: APSAuthenticator, nickname: str = "revitfamilymaker"):
+    def __init__(self, auth: APSAuthenticator, nickname: str = "revitfamilymaker", region: str = "us-east"):
         self.auth = auth
         self.nickname = nickname
-        self.base_url = "https://developer.api.autodesk.com/da/us-east/v3"
+        self.region = region
+        self.base_url = f"https://developer.api.autodesk.com/da/{region}/v3"
 
     def _headers(self) -> dict:
         return {
@@ -74,18 +75,19 @@ class AppBundleDeployer:
     ) -> dict:
         """Create or update an AppBundle"""
 
-        # Check if AppBundle exists
-        qualified_id = f"{self.nickname}.{bundle_name}+{engine}"
-        url = f"{self.base_url}/appbundles/{qualified_id}"
+        # Check if AppBundle exists (without engine suffix for existence check)
+        qualified_id_base = f"{self.nickname}.{bundle_name}"
+        url = f"{self.base_url}/appbundles/{qualified_id_base}"
 
         response = requests.get(url, headers=self._headers())
         exists = response.status_code == 200
 
         if exists:
-            print(f"AppBundle {qualified_id} exists, creating new version...")
+            print(f"AppBundle {qualified_id_base} exists, creating new version...")
             return self._create_appbundle_version(bundle_name, zip_path)
         else:
-            print(f"Creating new AppBundle {qualified_id}...")
+            qualified_id_full = f"{qualified_id_base}+{engine}"
+            print(f"Creating new AppBundle {qualified_id_full}...")
             return self._create_appbundle(bundle_name, engine, description, zip_path)
 
     def _create_appbundle(
@@ -143,9 +145,12 @@ class AppBundleDeployer:
 
     def create_alias(self, bundle_name: str, version: int, alias_name: str) -> dict:
         """Create or update an alias pointing to a specific version"""
+        import urllib.parse
 
         qualified_id = f"{self.nickname}.{bundle_name}"
-        url = f"{self.base_url}/appbundles/{qualified_id}/aliases"
+        # URL encode the qualified ID to handle special characters
+        encoded_id = urllib.parse.quote(qualified_id, safe='')
+        url = f"{self.base_url}/appbundles/{encoded_id}/aliases"
 
         # Check if alias exists
         alias_url = f"{url}/{alias_name}"
@@ -217,7 +222,7 @@ def main():
         "2025": "Autodesk.Revit+2025",
     }
     engine = engine_map[args.version]
-    bundle_name = f"RevitFamilyMaker{args.version}"
+    bundle_name = f"FamilyMaker{args.version}"  # Changed from RevitFamilyMaker to avoid conflicts
 
     print("=" * 60)
     print("APS AppBundle Deployment")
@@ -240,8 +245,8 @@ def main():
         sys.exit(1)
 
     # Deploy
-    nickname = args.nickname or settings.aps_client_id.split("_")[0]
-    deployer = AppBundleDeployer(auth, nickname=nickname)
+    nickname = args.nickname or settings.aps_da_nickname
+    deployer = AppBundleDeployer(auth, nickname=nickname, region=settings.aps_region)
 
     try:
         result = deployer.create_or_update_appbundle(

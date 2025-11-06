@@ -1,0 +1,30 @@
+# Windows container for building Revit AppBundle
+FROM mcr.microsoft.com/dotnet/framework/sdk:4.8-windowsservercore-ltsc2019
+
+WORKDIR /build
+
+# Copy project files
+COPY RevitAppBundle/ ./RevitAppBundle/
+
+# Restore NuGet packages
+RUN nuget restore RevitAppBundle\RevitFamilyMaker.csproj
+
+# Build for Revit 2025
+RUN msbuild RevitAppBundle\RevitFamilyMaker.csproj /p:Configuration=Release2025 /p:Platform=x64 /p:OutputPath=bin\Release2025\
+
+# Package the AppBundle
+WORKDIR /build/RevitAppBundle/bin/Release2025
+
+# Create package structure
+RUN mkdir Contents && \
+    copy *.dll Contents\ && \
+    echo ^<?xml version="1.0" encoding="utf-8"?^> > Contents.xml && \
+    echo ^<ApplicationPackage SchemaVersion="1.0" ProductType="Application" Name="RevitFamilyMaker" AppVersion="1.0.0"^> >> Contents.xml && \
+    echo   ^<CompanyDetails Name="Revit Family Maker" /^> >> Contents.xml && \
+    echo   ^<Components^> >> Contents.xml && \
+    echo     ^<RuntimeRequirements OS="Win64" Platform="Revit" SeriesMin="R2025" SeriesMax="R2025" /^> >> Contents.xml && \
+    echo     ^<ComponentEntry AppName="RevitFamilyMaker" ModuleName="./Contents/RevitFamilyMaker.dll" /^> >> Contents.xml && \
+    echo   ^</Components^> >> Contents.xml && \
+    echo ^</ApplicationPackage^> >> Contents.xml
+
+CMD ["cmd"]

@@ -1,0 +1,123 @@
+# LiveKit Agent Configuration
+
+[agent]
+# Job type - how the agent is assigned to rooms
+# "room" = one agent per room
+# "publisher" = one agent per publishing participant
+job_type = "room"
+
+# Worker type identifier
+worker_type = "agent"
+
+# Agent behavior
+[agent.behavior]
+# Automatically disconnect after this many seconds of inactivity
+idle_timeout = 300
+
+# Maximum session duration in seconds
+max_session_duration = 3600
+
+[agent.prewarm]
+# Number of warm instances to maintain
+# These are pre-initialized workers ready to handle requests
+count = 1
+
+# How long to keep prewarmed instances alive (seconds)
+timeout = 60
+
+[agent.scaling]
+# Minimum number of workers
+min_workers = 1
+
+# Maximum number of workers
+max_workers = 10
+
+# Target CPU utilization percentage
+target_utilization = 0.7
+
+# Scale up when utilization exceeds this
+scale_up_threshold = 0.8
+
+# Scale down when utilization falls below this
+scale_down_threshold = 0.3
+
+# Cooldown period between scaling operations (seconds)
+scale_cooldown = 30
+
+[agent.resources]
+# CPU allocation (Kubernetes format)
+# "500m" = 0.5 CPU cores
+cpu = "500m"
+
+# Memory allocation
+# "512Mi" = 512 megabytes
+memory = "512Mi"
+
+# Maximum CPU (for bursting)
+cpu_limit = "1000m"
+
+# Maximum memory
+memory_limit = "1Gi"
+
+[agent.networking]
+# Enable IPv6
+ipv6 = false
+
+# Custom DNS servers (optional)
+# dns_servers = ["8.8.8.8", "8.8.4.4"]
+
+[agent.logging]
+# Log level: debug, info, warning, error
+level = "info"
+
+# Include timestamps in logs
+timestamps = true
+
+# Log format: json, text
+format = "json"
+
+[agent.monitoring]
+# Enable metrics collection
+metrics_enabled = true
+
+# Metrics port
+metrics_port = 9090
+
+# Enable tracing
+tracing_enabled = false
+
+# Tracing endpoint (if enabled)
+# tracing_endpoint = "http://jaeger:14268/api/traces"
+
+[deployment]
+# Deployment environment
+environment = "production"
+
+# Region for deployment (LiveKit Cloud)
+region = "us-east-1"
+
+# Enable automatic updates
+auto_update = false
+
+# Health check configuration
+[deployment.health_check]
+# Health check endpoint
+path = "/health"
+
+# Port for health checks
+port = 8080
+
+# Initial delay before first health check (seconds)
+initial_delay = 10
+
+# Interval between health checks (seconds)
+interval = 30
+
+# Timeout for health check response (seconds)
+timeout = 5
+
+# Number of consecutive failures before marking unhealthy
+failure_threshold = 3
+
+# Number of consecutive successes before marking healthy
+success_threshold = 1
