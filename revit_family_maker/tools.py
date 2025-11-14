@@ -393,21 +393,35 @@ def create_tools(agent: Agent):
 
         # Parse dimensions from description
         # Example: "door 2100mm x 900mm" → extract dimensions
-        dimensions = {}
-        for keyword in ["width", "depth", "height", "tall", "wide", "deep"]:
-            pattern = rf"{keyword}[\s:]*(\d+\.?\d*\s*(?:mm|cm|m|in|ft))"
+        dimensions: dict[str, float] = {}
+        dimension_units: dict[str, str] = {}
+        keyword_map = {
+            "width": "width",
+            "wide": "width",
+            "depth": "depth",
+            "deep": "depth",
+            "height": "height",
+            "tall": "height",
+        }
+
+        for keyword, canonical in keyword_map.items():
+            pattern = rf"{keyword}[\s:]*(\d+\.?\d*\s*(?:mm|cm|m|in|ft|feet))"
             match = re.search(pattern, description.lower())
             if match:
                 value, unit = parse_dimension(match.group(1))
-                dimensions[keyword] = to_feet(value, unit)
+                dimensions[canonical] = to_feet(value, unit)
+                dimension_units[f"{canonical}_unit"] = unit
 
         # Use defaults if not found
-        if "height" not in dimensions and "tall" not in dimensions:
+        if "height" not in dimensions:
             dimensions["height"] = 3.0  # Default 3 feet
-        if "width" not in dimensions and "wide" not in dimensions:
+        if "width" not in dimensions:
             dimensions["width"] = 2.0  # Default 2 feet
-        if "depth" not in dimensions and "deep" not in dimensions:
+        if "depth" not in dimensions:
             dimensions["depth"] = 2.0  # Default 2 feet
+
+        for axis in ("width", "depth", "height"):
+            dimension_units.setdefault(f"{axis}_unit", "ft")
 
         print(f"  Parsed dimensions (feet): {dimensions}")
 
@@ -445,11 +459,11 @@ def create_tools(agent: Agent):
             parameters={
                 "category": category,
                 "width": dimensions["width"],
-                "width_unit": dimensions["width_unit"],
+                "width_unit": dimension_units["width_unit"],
                 "depth": dimensions["depth"],
-                "depth_unit": dimensions["depth_unit"],
+                "depth_unit": dimension_units["depth_unit"],
                 "height": dimensions["height"],
-                "height_unit": dimensions["height_unit"],
+                "height_unit": dimension_units["height_unit"],
                 "company_prefix": company_prefix,
                 "version": "0.1.0",
                 **parameters

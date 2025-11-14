@@ -1,139 +1,43 @@
 # Build Status & Path Forward
 
-## Current Situation
+## Current Status – 6 Nov 2025
 
-The GitHub Actions build is failing because the C# code requires `DesignAutomationBridge`, which is **not available on public NuGet**.
+✅ **Real Revit 2025 AppBundle built & deployed**
 
-### Why This Happens
+- Built both target frameworks locally (`dotnet build -c Release2024`, `dotnet publish -c Release2025 -r win-x64 --self-contained false`)
+- Packaged the publish output plus `PackageContents.xml` into `deployment/output/RevitFamilyMaker_2025.zip` (≈295 KB, contains real DLLs)
+- Ran `python deploy_fresh.py` to push the ZIP to APS and repoint alias `1`
+- Activity `1Jp7…FamilyMakerActivity+1` now references the freshly uploaded bundle version
 
-`DesignAutomationBridge` is Autodesk's internal framework for Design Automation plugins. It's not distributed publicly on NuGet.org.
+⚠️ **GitHub Actions builds still fail** because the Microsoft-hosted runner cannot access Autodesk's private DesignAutomationBridge dependency. Use local builds (mac cross-compile or Windows VM) until Autodesk exposes the package via a public feed.
 
----
+📦 **Artifacts in repo**
 
-## ✅ Good News: Deployment Pipeline Works!
+- `deployment/output/RevitFamilyMaker_2025.zip` – latest build that is live in APS
+- `RevitAppBundle/bin/Release2025/.../publish/` – source of truth for DLLs that were zipped
+- `deployment/output/RevitFamilyMaker_2024/` – contains the older 2024 build output (not zipped/deployed this run)
 
-**You already have a working deployment:**
-- ✅ APS authentication working
-- ✅ AppBundle deployed (stub version)
-- ✅ Activity created and configured
-- ✅ Python agent complete and functional
-- ✅ Deployment scripts tested and working
+🛰️ **APS state**
 
-**The deployment pipeline is proven and ready!**
+- AppBundle IDs available via `python deployment/scripts/setup_aps.py --list-appbundles`
+  - `...FamilyMaker2025+1` points to the latest upload (alias `1`)
+- Activity IDs confirmed via `--list-activities`
+  - `...FamilyMakerActivity+1` now references the new bundle alias
 
----
+🔄 **If you need to rebuild**
 
-## Options for Production AppBundle
+1. `dotnet restore RevitAppBundle/RevitFamilyMaker.csproj`
+2. `dotnet build -c Release2024` (optional) and `dotnet publish -c Release2025 -r win-x64 --self-contained false`
+3. Copy the publish folder into `deployment/output/Revit2025` and re-zip (use `deployment/scripts/build.ps1` on Windows or manual copy on macOS)
+4. `python deploy_fresh.py` (or `python deployment/scripts/deploy_appbundle.py --version 2025 --alias 1` once it handles 409s gracefully)
 
-### Option A: Use Local Windows Build (Recommended)
+🧪 **Verification**
 
-If you have access to a Windows machine with Visual Studio:
+- `python -m revit_family_maker.cli` – run an end-to-end job; expect the resulting `.rfa` and manifest to land in your configured output path
+- `python deployment/scripts/setup_aps.py --test-auth` – confirm tokens if anything fails
 
-1. **Install Prerequisites:**
-   - Visual Studio 2022 (Community Edition is free)
-   - .NET Framework 4.8 Developer Pack
-   - Revit 2025 SDK (or just the SDK NuGet packages)
+📋 **Outstanding work**
 
-2. **Build:**
-   ```powershell
-   cd RevitAppBundle
-   dotnet restore
-   msbuild RevitFamilyMaker.csproj /p:Configuration=Release2025 /p:Platform=x64
-   ```
-
-3. **Package:**
-   ```powershell
-   powershell -File ../deployment/scripts/build.ps1
-   ```
-
-4. **Deploy:**
-   ```bash
-   python deployment/scripts/deploy_appbundle.py --version 2025
-   ```
-
-**Time required:** ~10 minutes (one-time setup, then 2 minutes for subsequent builds)
-
----
-
-### Option B: Request DesignAutomationBridge Access
-
-Contact Autodesk to get access to the `DesignAutomationBridge` NuGet package:
-- File a support ticket
-- Explain you're building a Design Automation plugin
-- They may provide access to their private NuGet feed
-
----
-
-### Option C: Continue with Stub (For Testing Only)
-
-The stub AppBundle is already deployed and proves the entire pipeline works. You can:
-- ✅ Test Python agent logic
-- ✅ Test APS API integration
-- ✅ Test WorkItem submission and polling
-- ❌ **Cannot** generate actual .rfa files (stub DLLs fail in Revit)
-
----
-
-## Recommended Approach
-
-**For immediate deployment:**
-
-1. **Accept that GitHub Actions can't build the C# code** (requires internal Autodesk packages)
-
-2. **Use the local Windows build** when you need real .rfa generation
-
-3. **The Python agent and deployment infrastructure are complete and ready**
-
----
-
-## What's Already Working
-
-Your AI Revit Family Maker has:
-- ✅ **Complete Python AI agent** with Pydantic AI
-- ✅ **Full APS API integration** with retry logic and error handling
-- ✅ **Deployed infrastructure** (AppBundle + Activity on APS)
-- ✅ **Deployment automation** (scripts for AppBundle upload, Activity creation)
-- ✅ **Configuration management** (environment-based settings)
-
-**The only missing piece is the compiled C# DLL**, which requires Windows + Autodesk SDKs.
-
----
-
-## Immediate Next Steps
-
-### If You Have Windows Access:
-
-```bash
-# On Windows:
-cd RevitAppBundle
-msbuild RevitFamilyMaker.csproj /p:Configuration=Release2025 /p:Platform=x64
-powershell -File ../deployment/scripts/build.ps1
-
-# Back on Mac:
-python deployment/scripts/deploy_appbundle.py --version 2025
-python -m revit_family_maker.cli
-```
-
-### If You Don't Have Windows:
-
-**Your deployment pipeline is complete and proven.** The stub AppBundle demonstrates that:
-- Authentication works
-- AppBundle deployment works
-- Activity creation works
-- Python agent works
-
-When you need real .rfa generation, you can:
-- Use a Windows VM (Azure, AWS, etc.)
-- Ask someone with Windows to build it
-- Contact Autodesk for DesignAutomationBridge access
-
----
-
-## Summary
-
-**Status:** ✅ Deployment infrastructure 100% complete
-**Blocker:** Need Windows + Autodesk SDKs for C# compilation
-**Workaround:** Local Windows build (10-minute one-time setup)
-**Production Ready:** Python agent + APS integration + deployment scripts
-
-You have a production-ready AI Revit Family Maker platform - it just needs one DLL file from a Windows build! 🚀
+- Decide whether to keep GH Actions workflow (currently broken) or disable it to avoid future noise
+- Optionally repeat the packaging/deployment flow for the Revit 2024 configuration so both versions stay in sync
+- Validate a real APS WorkItem to ensure the new DLL works with Autodesk’s runtime

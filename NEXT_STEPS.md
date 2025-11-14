@@ -1,91 +1,66 @@
 # ✅ Progress Update & Next Steps
 
-## Current Status: Ready to Build AppBundle
+## Current Status: AppBundle Deployed ✅
 
 ### Completed ✅
-1. **APS Credentials Configured**
-   - Client ID and Secret added to `.env`
-   - EU region (eu-west) configured
-   - Authentication tested successfully ✅
-
-2. **Git Repository Initialized**
-   - Created `.gitignore` with proper exclusions
-   - Committed all source code and configuration
-   - GitHub Actions workflow ready
-
-3. **Production Code Complete**
-   - Python agent with Pydantic AI
-   - Complete APS API client
-   - C# AppBundle source code (Revit 2024/2025)
-   - Deployment scripts
+1. **APS Credentials Configured** (EU region, auth tested)
+2. **Repo + Automation Ready** (`.github/workflows/build-appbundle.yml`, deployment scripts)
+3. **Production Code Complete** (Python agent + C# AppBundle + deployment tooling)
+4. **Revit 2025 AppBundle Built & Uploaded**
+   - `deployment/output/RevitFamilyMaker_2025.zip` created from fresh `dotnet publish`
+   - `python deploy_fresh.py` pushed the ZIP and updated alias `1`
+   - Activity `...FamilyMakerActivity+1` now points to the new version
 
 ---
 
-## 🚀 Next: Build & Deploy AppBundle
+## 🚀 Next: Test & Iterate
 
-### Option A: GitHub Actions (Recommended - No Windows Required)
+### 1. Run an End-to-End Test
 
-**Step 1: Create GitHub Repository**
 ```bash
-# On GitHub, create a new repository (e.g., "revit-family-maker")
-# Then push your code:
-
-git remote add origin https://github.com/YOUR_USERNAME/revit-family-maker.git
-git branch -M master
-git push -u origin master
+python -m revit_family_maker.cli
 ```
 
-**Step 2: Trigger Build**
-The GitHub Actions workflow will **automatically** build the AppBundle when you push.
+Describe a family request and confirm:
+- WorkItem succeeds (watch APS dashboard/logs)
+- `.rfa` + manifest land under your configured output directory/bucket
 
-Or trigger manually:
-1. Go to your repo on GitHub
-2. Click **Actions** tab
-3. Click **Build Revit AppBundle**
-4. Click **Run workflow**
-
-**Step 3: Download Artifacts** (after ~3-5 minutes)
-1. Go to **Actions** → Click the completed workflow
-2. Download `RevitFamilyMaker-2025.zip` (or 2024)
-3. Move to project:
-   ```bash
-   mv ~/Downloads/RevitFamilyMaker-2025.zip ./deployment/
-   ```
+If something fails, pull logs from the WorkItem and check `deployment/logs/`.
 
 ---
 
-### Option B: Local Windows Build (If You Have Windows Access)
+### 2. (Optional) Build Revit 2024 Variant
 
-On a Windows machine with Visual Studio:
+If you also need 2024 support:
 
 ```powershell
-# In the project root
 cd RevitAppBundle
-dotnet restore
-msbuild RevitFamilyMaker.csproj /p:Configuration=Release2025 /p:Platform=x64
-
-# Package for APS
-powershell -File ../deployment/scripts/build.ps1
+dotnet build RevitFamilyMaker.csproj /p:Configuration=Release2024
+powershell -File ../deployment/scripts/build.ps1   # or replicate manual zip process
+python deployment/scripts/deploy_appbundle.py --version 2024 --alias 1
 ```
 
-The script will create `RevitFamilyMaker_2025.zip` in the deployment folder.
+**Note:** GitHub Actions still fails because DesignAutomationBridge isn’t on public NuGet. Use local builds until Autodesk publishes the dependency or grants private-feed access.
 
 ---
 
-### Option C: Pre-built AppBundle
+### 3. Keep the AppBundle Fresh
 
-If you already have a `.zip` AppBundle from a previous build:
+Whenever you change C# code:
 
 ```bash
-# Copy it to deployment folder
-cp path/to/your/AppBundle.zip ./deployment/RevitFamilyMaker-2025.zip
+# Rebuild
+dotnet publish RevitAppBundle/RevitFamilyMaker.csproj -c Release2025 -r win-x64 --self-contained false
 
-# Skip to deployment step
+# Repackage (PowerShell build script on Windows or manual copy on macOS)
+
+# Redeploy
+python deploy_fresh.py   # handles new version + alias updates
 ```
 
 ---
 
-## 📦 After You Have the AppBundle.zip
+## 📦 Useful Commands
 
 ### 1. Deploy AppBundle to APS
 ```bash
@@ -155,14 +130,12 @@ print(result.data)
 
 ## 🎯 What I'm Waiting For
 
-Currently blocked on: **Building the C# AppBundle**
+Currently focused on: **Validating the deployed 2025 AppBundle**
 
-**You need to either:**
-1. ✅ Push to GitHub (recommended) → GitHub Actions will build automatically
-2. OR build on Windows machine locally
-3. OR provide a pre-built AppBundle.zip
-
-Once you have the `.zip` file, we can immediately proceed with deployment.
+If you need to recompile:
+1. Build locally (mac cross-compile or Windows VM)
+2. Zip into `deployment/output/RevitFamilyMaker_2025.zip`
+3. `python deploy_fresh.py` to upload and update alias `1`
 
 ---
 

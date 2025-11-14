@@ -1,7 +1,9 @@
 # Building the C# AppBundle via GitHub Actions (No Windows Required!)
 
 ## Overview
-Since you're on macOS, we'll use **GitHub Actions** to automatically build the C# AppBundle on Windows in the cloud.
+> ⚠️ **Heads-up:** Microsoft-hosted GitHub Actions runners cannot currently restore Autodesk's private `DesignAutomationBridge` package, so the workflow in this repo will fail unless you host your own Windows runner that already has the Revit SDK installed. The steps below remain useful if you bring your own runner or if Autodesk later exposes the dependency publicly; otherwise, plan on building locally or via a Windows VM.
+
+Since you're on macOS, we'll use **GitHub Actions** to automatically build the C# AppBundle on Windows in the cloud **once a compatible runner is available**.
 
 ## ✅ Prerequisites Completed
 - [x] APS credentials configured in .env
